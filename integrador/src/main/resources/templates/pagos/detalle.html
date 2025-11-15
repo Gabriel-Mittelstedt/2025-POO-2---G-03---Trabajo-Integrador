@@ -5,6 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Detalle de Pago</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .recibo-container {
+            background-color: #f8f9fa;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        .tipo-pago-badge {
+            font-size: 0.9rem;
+            padding: 5px 10px;
+        }
+    </style>
 </head>
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
@@ -14,58 +27,92 @@
     </nav>
 
     <div class="container mt-4">
-        <h1>Detalle de Pago</h1>
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h1>Detalle de Pago</h1>
+            <span th:if="${pago.esPagoTotal()}" class="badge bg-success tipo-pago-badge">PAGO TOTAL</span>
+            <span th:if="${pago.esPagoParcial()}" class="badge bg-info tipo-pago-badge">PAGO PARCIAL</span>
+        </div>
+        
+        <div th:if="${mensaje}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <span th:text="${mensaje}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
 
         <div class="card mt-3">
             <div class="card-header bg-success text-white">
-                <h5>Pago #<span th:text="${pago.id}"></span></h5>
+                <h5 class="mb-0">Pago ID: <span th:text="${pago.IDPago}"></span></h5>
             </div>
             <div class="card-body">
                 <div class="row">
                     <div class="col-md-6">
-                        <p><strong>Cliente:</strong> <span th:text="${pago.cliente.nombre}"></span></p>
+                        <h6 class="text-muted">Información del Pago</h6>
                         <p><strong>Fecha de Pago:</strong> <span th:text="${#temporals.format(pago.fechaPago, 'dd/MM/yyyy')}"></span></p>
-                        <p><strong>Monto Total:</strong> $<span th:text="${#numbers.formatDecimal(pago.montoTotal, 1, 2)}"></span></p>
+                        <p><strong>Fecha/Hora de Registro:</strong> <span th:text="${#temporals.format(pago.fechaHoraRegistro, 'dd/MM/yyyy HH:mm:ss')}"></span></p>
+                        <p><strong>Monto:</strong> <span class="text-success fs-5">$<span th:text="${#numbers.formatDecimal(pago.monto, 1, 2)}"></span></span></p>
                     </div>
                     <div class="col-md-6">
+                        <h6 class="text-muted">Detalles de Pago</h6>
                         <p><strong>Método de Pago:</strong> <span th:text="${pago.metodoPago.descripcion}"></span></p>
-                        <p><strong>Referencia:</strong> <span th:text="${pago.referencia ?: 'Sin referencia'}"></span></p>
-                        <p><strong>Número de Recibo:</strong> <span th:text="${recibo.numeroRecibo}"></span></p>
-                    </div>
-                </div>
-
-                <div class="row" th:if="${pago.observaciones}">
-                    <div class="col-12">
-                        <p><strong>Observaciones:</strong> <span th:text="${pago.observaciones}"></span></p>
+                        <p><strong>Referencia:</strong> <span th:text="${pago.referencia != null ? pago.referencia : 'Sin referencia'}"></span></p>
                     </div>
                 </div>
 
                 <hr>
 
-                <h6>Facturas Afectadas</h6>
-                <table class="table table-sm">
-                    <thead>
-                        <tr>
-                            <th>Número de Factura</th>
-                            <th>Monto Pagado</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr th:each="pagoFactura : ${pago.facturasAfectadas}">
-                            <td th:text="${pagoFactura.factura.numeroFactura}"></td>
-                            <td>$<span th:text="${#numbers.formatDecimal(pagoFactura.montoPagado, 1, 2)}"></span></td>
-                            <td>
-                                <a th:href="@{/facturas/{id}(id=${pagoFactura.factura.id})}" class="btn btn-sm btn-info">Ver Factura</a>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-
-                <div class="mt-3">
-                    <a href="/pagos" class="btn btn-secondary">Volver</a>
+                <h6 class="text-muted">Factura Asociada</h6>
+                <div class="card">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p><strong>Número de Factura:</strong> <span th:text="${pago.factura.numeroFactura}"></span></p>
+                                <p><strong>Cliente:</strong> <span th:text="${pago.factura.cliente.razonSocial}"></span></p>
+                                <p><strong>Período:</strong> <span th:text="${pago.factura.periodo}"></span></p>
+                            </div>
+                            <div class="col-md-6">
+                                <p><strong>Total Factura:</strong> $<span th:text="${#numbers.formatDecimal(pago.factura.total, 1, 2)}"></span></p>
+                                <p><strong>Saldo Pendiente Actual:</strong> 
+                                    <span class="text-primary">$<span th:text="${#numbers.formatDecimal(pago.factura.saldoPendiente, 1, 2)}"></span></span>
+                                </p>
+                                <p><strong>Estado:</strong> 
+                                    <span class="badge" 
+                                          th:classappend="${pago.factura.estado.name() == 'PAGADA'} ? 'bg-success' : 
+                                                          (${pago.factura.estado.name() == 'PARCIALMENTE_PAGADA'} ? 'bg-warning' : 'bg-secondary')"
+                                          th:text="${pago.factura.estado.descripcion}"></span>
+                                </p>
+                            </div>
+                        </div>
+                        <div class="mt-2">
+                            <a th:href="@{/facturas/{id}(id=${pago.factura.idFactura})}" class="btn btn-sm btn-info">Ver Detalle de Factura</a>
+                        </div>
+                    </div>
                 </div>
             </div>
+        </div>
+
+        <!-- Recibo -->
+        <div class="recibo-container" th:if="${pago.recibo}">
+            <h5 class="mb-3"><i class="bi bi-receipt"></i> Recibo de Pago</h5>
+            <div class="row">
+                <div class="col-md-6">
+                    <p><strong>Número de Recibo:</strong> <code th:text="${pago.recibo.numero}"></code></p>
+                    <p><strong>Fecha de Emisión:</strong> <span th:text="${#temporals.format(pago.recibo.fecha, 'dd/MM/yyyy')}"></span></p>
+                </div>
+                <div class="col-md-6">
+                    <p><strong>Monto Recibido:</strong> $<span th:text="${#numbers.formatDecimal(pago.recibo.monto, 1, 2)}"></span></p>
+                    <p><strong>Método:</strong> <span th:text="${pago.recibo.metodoPago.descripcion}"></span></p>
+                </div>
+            </div>
+            <div class="row" th:if="${pago.recibo.facturasAsociadas}">
+                <div class="col-12">
+                    <p class="mb-0"><strong>Facturas Asociadas:</strong></p>
+                    <p class="text-muted" th:text="${pago.recibo.facturasAsociadas}"></p>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-4">
+            <a href="/pagos" class="btn btn-secondary">Volver al Listado</a>
+            <a th:href="@{/facturas/{id}(id=${pago.factura.idFactura})}" class="btn btn-outline-primary">Ver Factura</a>
         </div>
     </div>
 
