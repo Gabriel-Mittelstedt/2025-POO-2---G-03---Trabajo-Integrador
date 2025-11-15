@@ -26,12 +26,28 @@ public interface FacturaRepository extends JpaRepository<Factura, Long> {
     List<Factura> findByClienteId(@Param("clienteId") Long clienteId);
     
     /**
+     * Obtiene todas las facturas de un cliente ordenadas por fecha.
+     * 
+     * @param clienteId ID del cliente
+     * @return Lista de facturas del cliente
+     */
+    List<Factura> findByClienteIdOrderByFechaEmisionDesc(Long clienteId);
+    
+    /**
      * Obtiene todas las facturas por estado.
      * 
      * @param estado Estado de la factura
      * @return Lista de facturas con ese estado
      */
     List<Factura> findByEstado(EstadoFactura estado);
+    
+    /**
+     * Obtiene todas las facturas por estado ordenadas por fecha.
+     * 
+     * @param estado Estado de la factura
+     * @return Lista de facturas ordenadas por fecha
+     */
+    List<Factura> findByEstadoOrderByFechaEmisionDesc(EstadoFactura estado);
     
     /**
      * Obtiene todas las facturas ordenadas por fecha de emisión descendente.

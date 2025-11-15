@@ -114,8 +114,7 @@
                                                     'badge bg-secondary'}"
                                           th:text="${factura.estado.descripcion}"></span>
                                 </td>
-                                <td class="text-center">
-                                    <a th:href="@{/facturas/{id}(id=${factura.id})}" class="btn btn-sm btn-info" title="Ver detalle">
+                                <td><a th:href="@{/facturas/{id}(id=${factura.idFactura})}" class="btn btn-sm btn-info" title="Ver detalle">
                                         <i class="bi bi-eye"></i> Ver
                                     </a>
                                 </td>

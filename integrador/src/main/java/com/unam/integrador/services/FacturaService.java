@@ -1,6 +1,7 @@
 package com.unam.integrador.services;
 
 import com.unam.integrador.model.Factura;
+import com.unam.integrador.model.enums.EstadoFactura;
 import com.unam.integrador.repositories.FacturaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -50,7 +51,18 @@ public class FacturaService {
      */
     @Transactional(readOnly = true)
     public List<Factura> obtenerPorCliente(Long clienteId) {
-        return facturaRepository.findByClienteId(clienteId);
+        return facturaRepository.findByClienteIdOrderByFechaEmisionDesc(clienteId);
+    }
+    
+    /**
+     * Obtiene todas las facturas por estado.
+     * 
+     * @param estado Estado de la factura
+     * @return Lista de facturas con ese estado
+     */
+    @Transactional(readOnly = true)
+    public List<Factura> obtenerPorEstado(EstadoFactura estado) {
+        return facturaRepository.findByEstadoOrderByFechaEmisionDesc(estado);
     }
     
     /**
